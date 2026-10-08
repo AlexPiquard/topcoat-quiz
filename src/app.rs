@@ -1,6 +1,12 @@
 use crate::{
-    components::button::{ButtonSize, ButtonVariant, button_variants},
-    quiz,
+    components::{
+        button::{ButtonSize, ButtonVariant, button_variants},
+        card::{card, card_content, card_description, card_header, card_title},
+        field::{field, field_content, field_description, field_label},
+        label::label,
+        radio_group::{radio_group, radio_group_item},
+    },
+    quiz::{self, DEFAULT_QUESTIONS, DIFFICULTIES, MAX_QUESTIONS, MIN_QUESTIONS},
 };
 use topcoat::{
     self, Result,
@@ -9,7 +15,7 @@ use topcoat::{
     router::{Router, RouterBuilderDiscoverExt, Slot, layout, page},
     runtime::RouterBuilderRuntimeExt,
     tailwind,
-    view::{View, class, view},
+    view::{View, attributes, class, component, view},
 };
 
 pub fn router() -> topcoat::router::Router {
@@ -33,14 +39,89 @@ async fn home() -> Result<impl View> {
                 <h1 class=(class!("text-3xl font-semibold tracking-tight sm:text-4xl"))>
                     "Quiz"
                 </h1>
-                <a
-                    href="/quiz"
-                    class=(button_variants(ButtonVariant::Primary, ButtonSize::Lg))
-                >
-                    "Start new quiz"
-                </a>
+                settings_form()
             </div>
         </main>
+    })
+}
+
+#[component]
+async fn settings_form() -> Result<impl View> {
+    Ok(view! {
+        card(
+            attrs: attributes! { class="w-full text-left" },
+            card_header(
+                card_title("Quiz settings")
+                card_description("Pick a difficulty and a number of questions.")
+            )
+            card_content(
+                <form method="get" action="/quiz" class=(class!("flex flex-col gap-6"))>
+                    <div class=(class!("flex flex-col gap-3"))>
+                        <span class=(class!("text-sm font-medium"))>"Difficulty"</span>
+                        radio_group(
+                            #[key(i)]
+                            for (i, value) in DIFFICULTIES.into_iter().enumerate() {
+                                label(
+                                    attrs: attributes! {
+                                        for=(format!("difficulty-{i}"))
+                                        class=(class!(
+                                            "w-full cursor-pointer rounded-lg border border-border bg-background px-4 py-3 text-sm transition-colors",
+                                            "hover:bg-foreground/5",
+                                            "has-[:checked]:border-primary has-[:checked]:bg-primary/10",
+                                        ))
+                                    },
+                                    radio_group_item(
+                                        attrs: attributes! {
+                                            id=(format!("difficulty-{i}"))
+                                            name="difficulty"
+                                            value=(value)
+                                            if i == 0 { checked="checked" }
+                                        }
+                                    )
+                                    <span
+                                        class=(class!("min-w-0 capitalize leading-relaxed"))
+                                    >
+                                        (value)
+                                    </span>
+                                )
+                            }
+                        )
+                    </div>
+                    field(
+                        field_label(attrs: attributes! { for="limit" }, "Number of questions")
+                        field_content(
+                            <input
+                                id="limit"
+                                name="limit"
+                                type="number"
+                                min=(MIN_QUESTIONS.to_string())
+                                max=(MAX_QUESTIONS.to_string())
+                                value=(DEFAULT_QUESTIONS.to_string())
+                                aria-describedby="limit-description"
+                                class=(class!(
+                                    "h-10 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none transition-colors placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+                                ))
+                            />
+                            field_description(
+                                attrs: attributes! { id="limit-description" },
+                                (format!(
+                                    "Choose between {MIN_QUESTIONS} and {MAX_QUESTIONS} questions.",
+                                ))
+                            )
+                        )
+                    )
+                    <button
+                        type="submit"
+                        class=(class!(
+                            button_variants(ButtonVariant::Primary, ButtonSize::Md),
+                            "w-full",
+                        ))
+                    >
+                        "Start quiz"
+                    </button>
+                </form>
+            )
+        )
     })
 }
 

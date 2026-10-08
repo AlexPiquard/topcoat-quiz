@@ -10,6 +10,7 @@ use crate::quiz::model::{Question, QuizApiResponse, QuizCache};
 pub async fn fetch_questions(
     cx: &Cx,
     difficulty: &str,
+    limit: usize,
     session: &str,
 ) -> Result<Arc<Vec<Question>>> {
     let cache: &QuizCache =
@@ -18,7 +19,7 @@ pub async fn fetch_questions(
         return Ok(questions);
     }
 
-    let api_url = format!("https://quizzapi.fr/api/v2/quiz?limit=5&difficulty={difficulty}");
+    let api_url = format!("https://quizzapi.fr/api/v2/quiz?limit={limit}&difficulty={difficulty}");
 
     let response = reqwest::get(api_url)
         .await?

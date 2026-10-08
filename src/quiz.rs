@@ -1,7 +1,7 @@
 use topcoat::{
     Result,
     context::Cx,
-    router::page,
+    router::{page, query_params},
     runtime::{Event, shard, signal},
     view::{View, attributes, class, component, error_boundary, suspense, view},
 };
@@ -18,9 +18,26 @@ use crate::components::{
     spinner::spinner,
 };
 
+pub const DIFFICULTIES: [&str; 3] = ["facile", "normal", "difficile"];
+pub const MIN_QUESTIONS: usize = 1;
+pub const MAX_QUESTIONS: usize = 20;
+pub const DEFAULT_QUESTIONS: usize = 5;
+
+#[query_params(error = bad_request)]
+struct QuizSettings {
+    difficulty: Option<String>,
+    limit: Option<usize>,
+}
+
 #[page("/quiz")]
-async fn quiz() -> Result<impl View> {
+async fn quiz(cx: &Cx) -> Result<impl View> {
     let session: String = format!("{:x}", rand::random::<u128>());
+    let settings = query_params::<QuizSettings>(cx)?;
+    let difficulty: String = settings.difficulty.as_ref().cloned().unwrap_or(DIFFICULTIES[0].to_owned());
+    let limit = settings
+        .limit
+        .unwrap_or(DEFAULT_QUESTIONS);
+
     Ok(view! {
         <main
             class=(class!("flex flex-1 w-full items-center justify-center px-4 py-12"))
@@ -45,7 +62,8 @@ async fn quiz() -> Result<impl View> {
                             </div>
                         },
                         question(
-                            difficulty: $("facile".to_owned()),
+                            difficulty: $(difficulty),
+                            limit: $(limit),
                             session: $(session)
                         )
                     )
@@ -56,12 +74,20 @@ async fn quiz() -> Result<impl View> {
 }
 
 #[shard]
-async fn question(cx: &Cx, difficulty: String, session: String) -> Result<impl View> {
+async fn question(cx: &Cx, difficulty: String, limit: usize, session: String) -> Result<impl View> {
+    // Shard arguments come from the client: keep them within what the form offers.
+    let difficulty = if DIFFICULTIES.contains(&difficulty.as_str()) {
+        difficulty
+    } else {
+        DIFFICULTIES[0].to_owned()
+    };
+    let limit = limit.clamp(MIN_QUESTIONS, MAX_QUESTIONS);
+
     let index = signal(cx, || 0usize);
     let selected = signal(cx, || -1isize);
     let valided = signal(cx, || false);
     let score = signal(cx, || 0usize);
-    let questions = api::fetch_questions(cx, &difficulty, &session).await?;
+    let questions = api::fetch_questions(cx, &difficulty, limit, &session).await?;
 
     let q = questions
         .get((index.get() as usize).min(questions.len().saturating_sub(1)))

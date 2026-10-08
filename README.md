@@ -13,5 +13,4 @@ A small quiz website powered by [quizzapi.fr](https://quizzapi.fr), built to try
 
 ## Todo
 
-- [ ] Home page settings: difficulty and number of questions
 - [ ] Show which questions were answered correctly on the result screen
