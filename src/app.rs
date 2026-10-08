@@ -75,12 +75,12 @@ async fn settings_form() -> Result<impl View> {
                                             id=(format!("difficulty-{i}"))
                                             name="difficulty"
                                             value=(value)
-                                            if i == 0 { checked="checked" }
+                                            if i == 0 {
+                                                checked="checked"
+                                            }
                                         }
                                     )
-                                    <span
-                                        class=(class!("min-w-0 capitalize leading-relaxed"))
-                                    >
+                                    <span class=(class!("min-w-0 capitalize leading-relaxed"))>
                                         (value)
                                     </span>
                                 )
@@ -88,7 +88,10 @@ async fn settings_form() -> Result<impl View> {
                         )
                     </div>
                     field(
-                        field_label(attrs: attributes! { for="limit" }, "Number of questions")
+                        field_label(
+                            attrs: attributes! { for="limit" },
+                            "Number of questions"
+                        )
                         field_content(
                             <input
                                 id="limit"
