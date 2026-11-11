@@ -139,6 +139,7 @@ async fn question(cx: &Cx, difficulty: String, limit: usize, session: String) ->
                                         id=(format!("answer-{i}"))
                                         name="answer"
                                         value=(i.to_string())
+                                        :checked=$(selected.get() == i)
                                         @change=$(|_e: Event| selected.set(i))
                                     }
                                 )
