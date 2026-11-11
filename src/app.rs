@@ -11,9 +11,10 @@ use crate::{
 use topcoat::{
     self, Result,
     asset::{AssetBundle, RouterBuilderAssetExt},
+    context::Cx,
     font::fontsource::fontsource_font,
     router::{Router, RouterBuilderDiscoverExt, Slot, layout, page},
-    runtime::RouterBuilderRuntimeExt,
+    runtime::RuntimeLayer,
     tailwind,
     view::{View, attributes, class, component, view},
 };
@@ -22,13 +23,13 @@ pub fn router() -> topcoat::router::Router {
     Router::builder()
         .discover()
         .assets(AssetBundle::load().unwrap())
-        .runtime()
-        .app_context(quiz::model::QuizCache::new())
+        .layer(RuntimeLayer::new())
+        .with(quiz::model::QuizCache::new())
         .build()
 }
 
 #[page("/")]
-async fn home() -> Result<impl View> {
+async fn home(cx: &Cx) -> Result<impl View> {
     Ok(view! {
         <main class=(class!("flex flex-1 items-center justify-center px-4 py-12"))>
             <div
@@ -46,7 +47,7 @@ async fn home() -> Result<impl View> {
 }
 
 #[component]
-async fn settings_form() -> Result<impl View> {
+async fn settings_form(cx: &Cx) -> Result<impl View> {
     Ok(view! {
         card(
             attrs: attributes! { class="w-full text-left" },
@@ -129,7 +130,7 @@ async fn settings_form() -> Result<impl View> {
 }
 
 #[layout("/")]
-async fn root_layout(slot: Slot<'_>) -> Result<impl View> {
+async fn root_layout(cx: &Cx, slot: Slot<'_>) -> Result<impl View> {
     Ok(view! {
         <!DOCTYPE html>
         <html lang="en">

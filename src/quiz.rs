@@ -33,10 +33,12 @@ struct QuizSettings {
 async fn quiz(cx: &Cx) -> Result<impl View> {
     let session: String = format!("{:x}", rand::random::<u128>());
     let settings = query_params::<QuizSettings>(cx)?;
-    let difficulty: String = settings.difficulty.as_ref().cloned().unwrap_or(DIFFICULTIES[0].to_owned());
-    let limit = settings
-        .limit
-        .unwrap_or(DEFAULT_QUESTIONS);
+    let difficulty: String = settings
+        .difficulty
+        .as_ref()
+        .cloned()
+        .unwrap_or(DIFFICULTIES[0].to_owned());
+    let limit = settings.limit.unwrap_or(DEFAULT_QUESTIONS);
 
     Ok(view! {
         <main
@@ -189,7 +191,7 @@ async fn question(cx: &Cx, difficulty: String, limit: usize, session: String) ->
 }
 
 #[component]
-async fn result(score: usize, total: usize) -> Result<impl View> {
+async fn result(cx: &Cx, score: usize, total: usize) -> Result<impl View> {
     let percentage = (score * 100).checked_div(total).unwrap_or(0);
     let message = if percentage >= 80 {
         "Excellent work!"

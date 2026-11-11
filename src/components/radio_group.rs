@@ -1,5 +1,6 @@
 use topcoat::{
     Result,
+    context::Cx,
     view::{Attributes, Child, StaticClass, View, class, component, view},
 };
 
@@ -14,11 +15,12 @@ use topcoat::{
 /// view! {
 ///     radio_group(
 ///         for (value, text) in [("weekly", "Weekly"), ("monthly", "Monthly")] {
+///             let id = element_id(&cx.keyed(value));
 ///             <div class="flex items-center gap-2">
 ///                 radio_group_item(
-///                     attrs: attributes! { id=(value) name="billing" value=(value) }
+///                     attrs: attributes! { id=(&id) name="billing" value=(value) }
 ///                 )
-///                 label(attrs: attributes! { for=(value) }, (text))
+///                 label(attrs: attributes! { for=(&id) }, (text))
 ///             </div>
 ///         }
 ///     )
@@ -26,6 +28,7 @@ use topcoat::{
 /// ```
 #[component]
 pub async fn radio_group(
+    cx: &Cx,
     #[default] mut attrs: Attributes,
     #[default] child: Child<'_>,
 ) -> Result<impl View> {
@@ -42,16 +45,16 @@ pub async fn radio_group(
 
 /// Classes for the radio input and its selected border.
 const RADIO: StaticClass = class!(
-    "peer size-4 shrink-0 appearance-none rounded-full border border-border \
-     bg-background transition-colors outline-none checked:border-primary \
-     focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 \
-     focus-visible:ring-offset-background disabled:pointer-events-none",
+    "peer size-4 shrink-0 appearance-none rounded-full border border-border",
+    "bg-background transition-colors outline-none checked:border-primary",
+    "focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+    "focus-visible:ring-offset-background disabled:pointer-events-none",
 );
 
 /// The classes for the dot marking the picked option.
 const DOT: StaticClass = class!(
-    "pointer-events-none absolute inset-0 m-auto size-2 rounded-full bg-primary \
-     opacity-0 transition-opacity peer-checked:opacity-100",
+    "pointer-events-none absolute inset-0 m-auto size-2 rounded-full bg-primary",
+    "opacity-0 transition-opacity peer-checked:opacity-100",
 );
 
 /// A native radio input styled as a group option.
@@ -59,7 +62,7 @@ const DOT: StaticClass = class!(
 /// Pair it with a label. Classes in `attrs` apply to the wrapper, while other
 /// attributes go on the `<input>`.
 #[component]
-pub async fn radio_group_item(#[default] mut attrs: Attributes) -> Result<impl View> {
+pub async fn radio_group_item(cx: &Cx, #[default] mut attrs: Attributes) -> Result<impl View> {
     // The dot cannot be drawn by the `<input>` itself, which renders no
     // children or pseudo-elements: it is a sibling overlaid on the control,
     // revealed by the input's `peer` state while picked.
